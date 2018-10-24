@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
@@ -31,11 +32,12 @@ public class GoogleDriveFileUploader {
      * Global instance of the scopes required by this application.
      * If modifying these scopes, delete your previously saved tokens/ folder.
      */
-    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE_METADATA_READONLY);
+    private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
     private static final String CREDENTIALS_FILE_PATH = "/credentials.json";
 
     /**
      * Creates an authorized Credential object.
+     *
      * @param HTTP_TRANSPORT The network HTTP Transport.
      * @return An authorized Credential object.
      * @throws IOException If the credentials.json file cannot be found.
@@ -54,16 +56,27 @@ public class GoogleDriveFileUploader {
         return new AuthorizationCodeInstalledApp(flow, new LocalServerReceiver()).authorize("user");
     }
 
-    public static void main(String... args) throws IOException, GeneralSecurityException {
+    public static void main(String[] args) throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
+        Drive driveService;
+
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        Drive service = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+        driveService = new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
 
+        File fileMetaData = new File();
+        fileMetaData.setName("picture.jpg");
+        java.io.File filePath = new java.io.File("picture.jpg");
+        FileContent mediaContent = new FileContent("image/jpeg", filePath);
+        File f = driveService.files().create(fileMetaData, mediaContent)
+                .setFields("id")
+                .execute();
+        System.out.println("File ID: " + f.getId());
+
 
         // Print the names and IDs for up to 10 files.
-        FileList result = service.files().list()
+        FileList result = driveService.files().list()
                 .setPageSize(10)
                 .setFields("nextPageToken, files(id, name)")
                 .execute();
@@ -76,6 +89,8 @@ public class GoogleDriveFileUploader {
                 System.out.printf("%s (%s)\n", file.getName(), file.getId());
             }
         }
+
+
     }
 
 }

@@ -5,7 +5,9 @@ This is a use case where OAuth 2.0 used when implementing an application to uplo
 #Pre-requisites:
 
 -need to have gradle installed in the machine.
+
 -JDK 8 or above
+
 -gmail account
 
 
